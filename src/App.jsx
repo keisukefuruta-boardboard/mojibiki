@@ -331,9 +331,7 @@ export default function KotobaGame() {
           </div>
           <h1 style={{
             margin: "0 0 4px", fontSize: "52px", fontWeight: "900",
-            letterSpacing: "0.1em",
-            background: `linear-gradient(135deg, ${C.accent} 0%, ${C.gold} 100%)`,
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            letterSpacing: "0.15em", color: C.accent,
           }}>もじびき</h1>
           <div style={{ fontSize: "13px", color: C.text, marginBottom: "40px", lineHeight: "1.8" }}>
             配られた文字札でお題に合う言葉を作ろう<br/>
