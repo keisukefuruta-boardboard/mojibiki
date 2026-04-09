@@ -311,6 +311,7 @@ export default function KotobaGame() {
       }}>
         <div style={{
           position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none",
+          zIndex: 0,
         }}>
           {["あ","い","う","え","お","か","き","く","な","に","の","は","ま","も","や","ゆ","よ"].map((c, i) => (
             <div key={i} style={{
@@ -325,13 +326,15 @@ export default function KotobaGame() {
           ))}
         </div>
 
-        <div style={{ position: "relative", textAlign: "center" }}>
+        <div style={{ position: "relative", textAlign: "center", zIndex: 1 }}>
           <div style={{ fontSize: "11px", letterSpacing: "0.5em", color: C.accent, marginBottom: "12px" }}>
             WORD PUZZLE GAME
           </div>
           <h1 style={{
             margin: "0 0 4px", fontSize: "52px", fontWeight: "900",
-            letterSpacing: "0.15em", color: C.accent,
+            letterSpacing: "0.1em",
+            background: `linear-gradient(135deg, ${C.accent} 0%, ${C.gold} 100%)`,
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
           }}>もじびき</h1>
           <div style={{ fontSize: "13px", color: C.text, marginBottom: "40px", lineHeight: "1.8" }}>
             配られた文字札でお題に合う言葉を作ろう<br/>
