@@ -305,8 +305,9 @@ export default function KotobaGame() {
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         fontFamily: "'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif",
-        color: C.text, padding: "24px",
-        userSelect: "none",
+        color: C.text, padding: "48px 24px",
+        userSelect: "none", overflowY: "auto",
+        boxSizing: "border-box",
       }}>
         <div style={{
           position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none",
@@ -523,8 +524,9 @@ export default function KotobaGame() {
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         fontFamily: "'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif",
-        color: C.text, padding: "24px",
-        userSelect: "none",
+        color: C.text, padding: "48px 24px",
+        userSelect: "none", overflowY: "auto",
+        boxSizing: "border-box",
       }}>
         <div style={{
           width: "100%", maxWidth: "360px",
@@ -655,8 +657,9 @@ export default function KotobaGame() {
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         fontFamily: "'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif",
-        color: C.text, padding: "24px",
-        userSelect: "none",
+        color: C.text, padding: "48px 24px",
+        userSelect: "none", overflowY: "auto",
+        boxSizing: "border-box",
       }}>
         <div style={{ width: "100%", maxWidth: "360px", animation: "fadeUp 0.5s ease" }}>
 
