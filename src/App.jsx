@@ -130,38 +130,54 @@ const VALID_WORDS = new Set([
   "たいよう","こうよう","すいえい","やきゅう","たんぽぽ","かたつむり","でんしゃ",
 ]);
 
-function localJudgeWord(word, theme) {
-  // 有効性チェック：3文字以上 & よく使われる語 or 妥当な組み合わせ
-  const chars = [...word];
-  const isValid = VALID_WORDS.has(word) || (chars.length >= 3 && chars.every(c =>
-    /^[ぁ-ん]$/.test(c)
-  ));
-
-  // お題との関連度チェック
-  const keywords = THEME_KEYWORDS[theme] || [];
-  let score = 20; // ベーススコア
-
-  // キーワード完全一致
-  if (keywords.includes(word)) score = 85 + Math.floor(Math.random() * 15);
-  else {
-    // 部分マッチ
-    const matchCount = keywords.filter(k => word.includes(k) || k.includes(word)).length;
-    score = Math.min(75, 20 + matchCount * 20 + Math.floor(Math.random() * 20));
-  }
-
-  const comments = [
-    ["いいね！ぴったり！", "お題にバッチリ！", "センスいい！", "なるほど！", "うまい！"],
-    ["悪くないね", "ちょっと遠いかな", "まあそういう見方も", "工夫が必要かも"],
-    ["うーん…関係ある？", "ちょっと苦しい", "もう少し頑張って", "惜しい！"],
-  ];
-  const commentSet = score >= 70 ? comments[0] : score >= 40 ? comments[1] : comments[2];
-  const comment = commentSet[Math.floor(Math.random() * commentSet.length)];
-
-  return { valid: isValid, score: isValid ? score : 0, comment };
-}
-
 async function judgeWord(word, theme) {
-  return localJudgeWord(word, theme);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 200,
+        messages: [{
+          role: "user",
+          content: `以下をJSONのみで返答してください。
+
+お題:「${theme}」
+言葉:「${word}」
+
+判定:
+1. valid: 日本語として実在する言葉か (true/false)。造語・でたらめは false。
+2. score: お題との関連度 (0〜100の整数)
+3. comment: 一言コメント（15文字以内）
+
+{"valid": true, "score": 80, "comment": "コメント"} の形式のみで返答。`,
+        }],
+      }),
+    });
+    if (!res.ok) throw new Error("api error");
+    const data = await res.json();
+    const text = data.content?.find(b => b.type === "text")?.text || "";
+    const match = text.match(/\{[\s\S]*?\}/);
+    if (!match) throw new Error("parse error");
+    const result = JSON.parse(match[0]);
+    return {
+      valid: !!result.valid,
+      score: Number(result.score) || 0,
+      comment: result.comment || "…",
+    };
+  } catch {
+    // APIエラー時はキーワードベースのフォールバック
+    const keywords = THEME_KEYWORDS[theme] || [];
+    const isValid = [...word].every(c => /^[ぁ-んァ-ンー]$/.test(c)) && [...word].length >= 3;
+    const matched = keywords.some(k => word.includes(k) || k.includes(word));
+    const score = matched ? 70 + Math.floor(Math.random() * 20) : 20 + Math.floor(Math.random() * 20);
+    const comment = matched ? "お題に近い！" : "惜しい…";
+    return { valid: isValid, score: isValid ? score : 0, comment };
+  }
 }
 
 // スコア計算：最大100点。関連度がそのままベース、文字数ボーナスで上限100
