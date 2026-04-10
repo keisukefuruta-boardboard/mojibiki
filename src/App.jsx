@@ -416,23 +416,31 @@ export default function KotobaGame() {
           zIndex: 0,
         }}>
           {[
-            {c:"あ", left:3,  top:5},
-            {c:"い", left:88, top:8},
-            {c:"う", left:5,  top:30},
-            {c:"え", left:90, top:35},
-            {c:"お", left:2,  top:60},
-            {c:"か", left:92, top:62},
-            {c:"き", left:4,  top:82},
-            {c:"く", left:88, top:85},
-            {c:"な", left:10, top:15},
-            {c:"に", left:82, top:18},
-            {c:"の", left:8,  top:70},
-            {c:"は", left:85, top:72},
-            {c:"ま", left:15, top:90},
-            {c:"も", left:78, top:92},
-            {c:"や", left:2,  top:45},
-            {c:"ゆ", left:91, top:48},
-            {c:"よ", left:12, top:50},
+            // 左端
+            {c:"あ", left:2,  top:5},
+            {c:"う", left:3,  top:25},
+            {c:"お", left:2,  top:48},
+            {c:"き", left:3,  top:70},
+            {c:"ま", left:2,  top:88},
+            // 右端
+            {c:"い", left:93, top:8},
+            {c:"え", left:94, top:30},
+            {c:"か", left:93, top:55},
+            {c:"に", left:94, top:75},
+            {c:"も", left:93, top:92},
+            // 左寄り中間（PCのみ見える）
+            {c:"な", left:12, top:12},
+            {c:"の", left:10, top:65},
+            {c:"ゆ", left:14, top:85},
+            // 右寄り中間（PCのみ見える）
+            {c:"は", left:82, top:18},
+            {c:"ら", left:84, top:72},
+            {c:"よ", left:80, top:90},
+            // 上下端
+            {c:"く", left:30, top:3},
+            {c:"つ", left:60, top:3},
+            {c:"ね", left:45, top:95},
+            {c:"り", left:72, top:95},
           ].map(({c, left, top}, i) => (
             <div key={i} style={{
               position: "absolute",
@@ -440,7 +448,7 @@ export default function KotobaGame() {
               top: `${top}%`,
               fontSize: `${14 + (i % 3) * 6}px`,
               color: "#9d7fe0",
-              opacity: 0.2,
+              opacity: 0.22,
               fontWeight: "bold",
             }}>{c}</div>
           ))}
