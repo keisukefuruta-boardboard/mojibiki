@@ -144,17 +144,20 @@ async function judgeWord(word, theme) {
         max_tokens: 200,
         messages: [{
           role: "user",
-          content: `以下をJSONのみで返答してください。
+          content: `日本語の辞書判定をしてください。JSONのみで返答。
 
-お題:「${theme}」
 言葉:「${word}」
+お題:「${theme}」
 
-判定:
-1. valid: 日本語として実在する言葉か (true/false)。造語・でたらめは false。
-2. score: お題との関連度 (0〜100の整数)
-3. comment: 一言コメント（15文字以内）
+ルール:
+- valid: 一般的な国語辞典（広辞苑・大辞林レベル）に載っている実在の日本語単語のみtrue
+- 造語・でたらめ・存在しない言葉・ランダムな文字列は必ずfalse
+- 固有名詞・地名・人名もfalse
+- validがfalseの場合、scoreは必ず0
+- score: お題との意味的な関連度（0〜100）、validがtrueの場合のみ採点
+- comment: 15文字以内の一言
 
-{"valid": true, "score": 80, "comment": "コメント"} の形式のみで返答。`,
+{"valid": true, "score": 80, "comment": "コメント"} の形式のみ。説明不要。`,
         }],
       }),
     });
