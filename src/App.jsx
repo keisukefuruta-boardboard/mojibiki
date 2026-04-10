@@ -418,7 +418,7 @@ export default function KotobaGame() {
             maxWidth: "300px", margin: "0 auto 32px",
             textAlign: "left", fontSize: "12px", lineHeight: "2.2", color: C.muted,
           }}>
-            <div style={{ color: C.text }}>🃏 12枚の文字札が配られる</div>
+            <div style={{ color: C.text }}>🃏 15枚の文字札が配られる</div>
             <div style={{ color: C.text }}>💬 毎回ランダムなお題が発表される</div>
             <div style={{ color: C.text }}>✍️ 3文字以上選んで言葉を作る</div>
             <div style={{ color: C.accent }}>⭐ お題に近い言葉ほど高得点</div>
