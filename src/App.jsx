@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 // ひらがな文字札プール（頻度重み付き）
 const POOL = [
@@ -21,7 +21,7 @@ const POOL = [
 ];
 
 const TOTAL_ROUNDS = 5;
-const HAND_SIZE = 12;
+const HAND_SIZE = 15;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -164,19 +164,19 @@ async function judgeWord(word, theme) {
   return localJudgeWord(word, theme);
 }
 
-// スコア計算：関連度 × 文字数ボーナス
+// スコア計算：最大100点。関連度がそのままベース、文字数ボーナスで上限100
 function calcScore(apiScore, wordLength) {
-  const lengthBonus = wordLength >= 6 ? 2.0 : wordLength >= 5 ? 1.5 : wordLength >= 4 ? 1.2 : 1.0;
-  return Math.round(apiScore * lengthBonus);
+  const lengthBonus = wordLength >= 6 ? 1.3 : wordLength >= 5 ? 1.15 : wordLength >= 4 ? 1.05 : 1.0;
+  return Math.min(100, Math.round(apiScore * lengthBonus));
 }
 
 // スコアに応じた評価ラベル
 function getScoreLabel(score) {
-  if (score >= 150) return { label: "神業！", color: "#ffd700" };
-  if (score >= 120) return { label: "すごい！", color: "#ff9500" };
-  if (score >= 90)  return { label: "いい感じ", color: "#34c759" };
-  if (score >= 60)  return { label: "まあまあ", color: "#5ac8fa" };
-  if (score >= 30)  return { label: "惜しい…", color: "#8e8e93" };
+  if (score >= 90) return { label: "神業！", color: "#ffd700" };
+  if (score >= 75) return { label: "すごい！", color: "#ff9500" };
+  if (score >= 55) return { label: "いい感じ", color: "#34c759" };
+  if (score >= 35) return { label: "まあまあ", color: "#5ac8fa" };
+  if (score >= 15) return { label: "惜しい…", color: "#8e8e93" };
   return { label: "関係ない", color: "#636366" };
 }
 
@@ -198,6 +198,30 @@ const C = {
   dim: "#2a2840",
 };
 
+// ランキング管理
+const RANKING_KEY = "mojibiki_ranking";
+const MAX_RANKING = 10;
+
+function loadRanking() {
+  try {
+    return JSON.parse(localStorage.getItem(RANKING_KEY) || "[]");
+  } catch { return []; }
+}
+
+function saveRanking(score, rank) {
+  const ranking = loadRanking();
+  const entry = {
+    score,
+    rank: rank.label,
+    date: new Date().toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+  };
+  const newRanking = [...ranking, entry]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_RANKING);
+  localStorage.setItem(RANKING_KEY, JSON.stringify(newRanking));
+  return newRanking;
+}
+
 export default function KotobaGame() {
   const [screen, setScreen] = useState("title"); // title | playing | roundResult | final
   const [round, setRound] = useState(1);
@@ -210,6 +234,10 @@ export default function KotobaGame() {
   const [history, setHistory] = useState([]);
   const [loadingTheme, setLoadingTheme] = useState(false);
   const [usedThemes, setUsedThemes] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const timerRef = React.useRef(null);
+  const [ranking, setRanking] = useState([]);
+  const [finalTab, setFinalTab] = useState("result"); // result | ranking
 
   async function startGame() {
     setTotalScore(0);
@@ -224,7 +252,8 @@ export default function KotobaGame() {
     setLoadingTheme(true);
     setSelected([]);
     setRoundResult(null);
-    // 使用済みテーマを避けて選ぶ
+    setTimeLeft(30);
+    if (timerRef.current) clearInterval(timerRef.current);
     const used = currentUsedThemes ?? usedThemes;
     const t = pickTheme(used);
     setTheme(t);
@@ -245,6 +274,7 @@ export default function KotobaGame() {
 
   async function submitWord() {
     if (selected.length < 3 || submitting) return;
+    if (timerRef.current) clearInterval(timerRef.current);
     setSubmitting(true);
     try {
       const result = await judgeWord(selectedWord, theme);
@@ -285,6 +315,45 @@ export default function KotobaGame() {
       setSubmitting(false);
     }
   }
+
+  // タイマー制御
+  useEffect(() => {
+    if (screen !== "playing" || loadingTheme || submitting) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          // 時間切れ → 無回答で0点
+          const themeWords = THEME_KEYWORDS[theme] || [];
+          const handStr = hand.join("");
+          const bestAnswer = themeWords
+            .filter(w => [...w].every(() => true) && (() => {
+              const handArr = [...handStr];
+              return [...w].every(ch => {
+                const idx = handArr.indexOf(ch);
+                if (idx === -1) return false;
+                handArr.splice(idx, 1);
+                return true;
+              });
+            })())
+            .sort((a, b) => b.length - a.length)[0] || null;
+          const entry = {
+            round, theme, word: "（無回答）",
+            valid: false, apiScore: 0, score: 0,
+            comment: "時間切れ！次は早めに！",
+            wordLength: 0, hand: [...hand], bestAnswer,
+          };
+          setRoundResult(entry);
+          setHistory(prev2 => [...prev2, entry]);
+          setScreen("roundResult");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [screen, loadingTheme, submitting, theme]);
 
   async function nextRound() {
     if (round >= TOTAL_ROUNDS) {
@@ -394,8 +463,20 @@ export default function KotobaGame() {
           ))}
         </div>
 
-        <div style={{ fontSize: "11px", color: C.muted, marginBottom: "4px", letterSpacing: "0.15em" }}>
-          ROUND {round} / {TOTAL_ROUNDS}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "4px" }}>
+          <div style={{ fontSize: "11px", color: C.muted, letterSpacing: "0.15em" }}>
+            ROUND {round} / {TOTAL_ROUNDS}
+          </div>
+          <div style={{
+            fontSize: "20px", fontWeight: "900",
+            color: timeLeft <= 10 ? C.red : timeLeft <= 20 ? C.gold : C.text,
+            letterSpacing: "0.05em",
+            textShadow: timeLeft <= 10 ? `0 0 12px ${C.red}` : "none",
+            transition: "color 0.3s",
+            minWidth: "48px", textAlign: "center",
+          }}>
+            {timeLeft}
+          </div>
         </div>
 
         {/* お題 */}
@@ -647,11 +728,20 @@ export default function KotobaGame() {
     const avg = Math.round(totalScore / TOTAL_ROUNDS);
     const best = history.reduce((a, b) => a.score > b.score ? a : b, history[0]);
     const rank =
-      totalScore >= 600 ? { label: "語彙の神", emoji: "👑" } :
-      totalScore >= 450 ? { label: "言葉の達人", emoji: "🏆" } :
-      totalScore >= 300 ? { label: "なかなかの腕前", emoji: "⭐" } :
+      totalScore >= 450 ? { label: "語彙の神", emoji: "👑" } :
+      totalScore >= 350 ? { label: "言葉の達人", emoji: "🏆" } :
+      totalScore >= 250 ? { label: "なかなかの腕前", emoji: "⭐" } :
       totalScore >= 150 ? { label: "まだまだこれから", emoji: "📚" } :
       { label: "語彙力を鍛えよう", emoji: "🌱" };
+
+    // ランキング保存（初回のみ）
+    React.useEffect(() => {
+      const newRanking = saveRanking(totalScore, rank);
+      setRanking(newRanking);
+      setFinalTab("result");
+    }, []);
+
+    const myRankPosition = ranking.findIndex(r => r.score === totalScore) + 1;
 
     return (
       <div style={{
@@ -665,7 +755,7 @@ export default function KotobaGame() {
       }}>
         <div style={{ width: "100%", maxWidth: "360px", animation: "fadeUp 0.5s ease" }}>
 
-          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
             <div style={{ fontSize: "40px", marginBottom: "8px" }}>{rank.emoji}</div>
             <div style={{ fontSize: "20px", fontWeight: "bold", color: C.accent, marginBottom: "4px" }}>
               {rank.label}
@@ -677,6 +767,24 @@ export default function KotobaGame() {
               {totalScore}
             </div>
             <div style={{ fontSize: "12px", color: C.muted }}>点 (平均 {avg}点/ラウンド)</div>
+            {myRankPosition > 0 && (
+              <div style={{ fontSize: "12px", color: C.accent, marginTop: "4px" }}>
+                このデバイスで {myRankPosition}位！
+              </div>
+            )}
+          </div>
+
+          {/* タブ切り替え */}
+          <div style={{ display: "flex", gap: "0", marginBottom: "16px", border: `1px solid ${C.cardBorder}`, borderRadius: "8px", overflow: "hidden" }}>
+            {[["result", "結果"], ["ranking", "ランキング"]].map(([tab, label]) => (
+              <button key={tab} onClick={() => setFinalTab(tab)} style={{
+                flex: 1, padding: "10px",
+                background: finalTab === tab ? C.accentDark : "transparent",
+                color: finalTab === tab ? "#fff" : C.muted,
+                border: "none", cursor: "pointer",
+                fontFamily: "inherit", fontSize: "12px", letterSpacing: "0.1em",
+              }}>{label}</button>
+            ))}
           </div>
 
           {/* 履歴 */}
@@ -735,6 +843,47 @@ export default function KotobaGame() {
               textAlign: "center", fontSize: "11px", color: C.muted, marginBottom: "20px",
             }}>
               ベスト: 「<span style={{ color: C.accent }}>{best.word}</span>」({best.score}点)
+            </div>
+          )}
+
+          {/* ランキング表示 */}
+          {finalTab === "ranking" && (
+            <div style={{
+              background: C.card, border: `1px solid ${C.cardBorder}`,
+              borderRadius: "12px", padding: "16px 20px", marginBottom: "20px",
+            }}>
+              <div style={{ fontSize: "10px", color: C.muted, letterSpacing: "0.2em", marginBottom: "12px" }}>
+                このデバイスのランキング TOP{MAX_RANKING}
+              </div>
+              {ranking.length === 0 ? (
+                <div style={{ fontSize: "12px", color: C.muted, textAlign: "center", padding: "12px" }}>
+                  まだ記録がありません
+                </div>
+              ) : ranking.map((r, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "8px 0",
+                  borderBottom: i < ranking.length - 1 ? `1px solid ${C.dim}` : "none",
+                  background: r.score === totalScore && i === myRankPosition - 1 ? "#1a1a2e" : "transparent",
+                  borderRadius: "4px", paddingLeft: "4px",
+                }}>
+                  <div style={{
+                    width: "24px", fontSize: "14px", fontWeight: "900", textAlign: "center",
+                    color: i === 0 ? C.gold : i === 1 ? "#c0c0c0" : i === 2 ? "#cd7f32" : C.muted,
+                  }}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "16px", fontWeight: "900", color: i < 3 ? C.text : C.muted }}>
+                      {r.score}<span style={{ fontSize: "10px", marginLeft: "2px" }}>点</span>
+                    </div>
+                    <div style={{ fontSize: "9px", color: C.muted }}>{r.date} · {r.rank}</div>
+                  </div>
+                  {r.score === totalScore && i === myRankPosition - 1 && (
+                    <div style={{ fontSize: "10px", color: C.accent }}>← 今回</div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
 
