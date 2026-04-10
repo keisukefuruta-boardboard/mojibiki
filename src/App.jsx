@@ -316,6 +316,20 @@ export default function KotobaGame() {
     }
   }
 
+  // ランキング保存（finalに遷移したとき）
+  useEffect(() => {
+    if (screen !== "final") return;
+    const rank =
+      totalScore >= 450 ? { label: "語彙の神" } :
+      totalScore >= 350 ? { label: "言葉の達人" } :
+      totalScore >= 250 ? { label: "なかなかの腕前" } :
+      totalScore >= 150 ? { label: "まだまだこれから" } :
+      { label: "語彙力を鍛えよう" };
+    const newRanking = saveRanking(totalScore, rank);
+    setRanking(newRanking);
+    setFinalTab("result");
+  }, [screen]);
+
   // タイマー制御
   useEffect(() => {
     if (screen !== "playing" || loadingTheme || submitting) return;
@@ -733,13 +747,6 @@ export default function KotobaGame() {
       totalScore >= 250 ? { label: "なかなかの腕前", emoji: "⭐" } :
       totalScore >= 150 ? { label: "まだまだこれから", emoji: "📚" } :
       { label: "語彙力を鍛えよう", emoji: "🌱" };
-
-    // ランキング保存（初回のみ）
-    React.useEffect(() => {
-      const newRanking = saveRanking(totalScore, rank);
-      setRanking(newRanking);
-      setFinalTab("result");
-    }, []);
 
     const myRankPosition = ranking.findIndex(r => r.score === totalScore) + 1;
 
