@@ -852,7 +852,7 @@ export default function KotobaGame() {
           </div>
 
           {/* 履歴 */}
-          <div style={{
+          {finalTab === "result" && <div style={{
             background: C.card, border: `1px solid ${C.cardBorder}`,
             borderRadius: "12px", padding: "16px 20px", marginBottom: "20px",
           }}>
@@ -900,9 +900,9 @@ export default function KotobaGame() {
                 )}
               </div>
             ))}
-          </div>
+          </div>}
 
-          {best && (
+          {finalTab === "result" && best && (
             <div style={{
               textAlign: "center", fontSize: "11px", color: C.muted, marginBottom: "20px",
             }}>
