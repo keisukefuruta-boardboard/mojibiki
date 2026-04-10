@@ -415,14 +415,32 @@ export default function KotobaGame() {
           position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none",
           zIndex: 0,
         }}>
-          {["あ","い","う","え","お","か","き","く","な","に","の","は","ま","も","や","ゆ","よ"].map((c, i) => (
+          {[
+            {c:"あ", left:3,  top:5},
+            {c:"い", left:88, top:8},
+            {c:"う", left:5,  top:30},
+            {c:"え", left:90, top:35},
+            {c:"お", left:2,  top:60},
+            {c:"か", left:92, top:62},
+            {c:"き", left:4,  top:82},
+            {c:"く", left:88, top:85},
+            {c:"な", left:10, top:15},
+            {c:"に", left:82, top:18},
+            {c:"の", left:8,  top:70},
+            {c:"は", left:85, top:72},
+            {c:"ま", left:15, top:90},
+            {c:"も", left:78, top:92},
+            {c:"や", left:2,  top:45},
+            {c:"ゆ", left:91, top:48},
+            {c:"よ", left:12, top:50},
+          ].map(({c, left, top}, i) => (
             <div key={i} style={{
               position: "absolute",
-              left: `${(i * 23 + 5) % 100}%`,
-              top: `${(i * 17 + 10) % 100}%`,
-              fontSize: `${16 + (i % 3) * 8}px`,
+              left: `${left}%`,
+              top: `${top}%`,
+              fontSize: `${14 + (i % 3) * 6}px`,
               color: "#9d7fe0",
-              opacity: 0.35,
+              opacity: 0.2,
               fontWeight: "bold",
             }}>{c}</div>
           ))}
