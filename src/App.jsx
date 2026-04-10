@@ -417,36 +417,48 @@ export default function KotobaGame() {
         }}>
           {[
             // 左端
-            {c:"あ", left:2,  top:5},
-            {c:"う", left:3,  top:25},
-            {c:"お", left:2,  top:48},
-            {c:"き", left:3,  top:70},
-            {c:"ま", left:2,  top:88},
+            {c:"あ", left:1,  top:4,  size:18},
+            {c:"う", left:2,  top:22, size:14},
+            {c:"お", left:1,  top:42, size:20},
+            {c:"き", left:2,  top:62, size:14},
+            {c:"ま", left:1,  top:82, size:18},
             // 右端
-            {c:"い", left:93, top:8},
-            {c:"え", left:94, top:30},
-            {c:"か", left:93, top:55},
-            {c:"に", left:94, top:75},
-            {c:"も", left:93, top:92},
-            // 左寄り中間（PCのみ見える）
-            {c:"な", left:12, top:12},
-            {c:"の", left:10, top:65},
-            {c:"ゆ", left:14, top:85},
-            // 右寄り中間（PCのみ見える）
-            {c:"は", left:82, top:18},
-            {c:"ら", left:84, top:72},
-            {c:"よ", left:80, top:90},
-            // 上下端
-            {c:"く", left:30, top:3},
-            {c:"つ", left:60, top:3},
-            {c:"ね", left:45, top:95},
-            {c:"り", left:72, top:95},
-          ].map(({c, left, top}, i) => (
+            {c:"い", left:95, top:7,  size:16},
+            {c:"え", left:96, top:28, size:20},
+            {c:"か", left:95, top:50, size:14},
+            {c:"に", left:96, top:70, size:18},
+            {c:"も", left:95, top:90, size:14},
+            // 左中間（コンテンツ左外側）
+            {c:"な", left:18, top:8,  size:22},
+            {c:"さ", left:16, top:28, size:16},
+            {c:"の", left:18, top:52, size:20},
+            {c:"ゆ", left:16, top:72, size:14},
+            {c:"ら", left:19, top:90, size:18},
+            // 右中間（コンテンツ右外側）
+            {c:"は", left:78, top:12, size:20},
+            {c:"ち", left:80, top:35, size:14},
+            {c:"ろ", left:78, top:58, size:22},
+            {c:"よ", left:80, top:78, size:16},
+            {c:"れ", left:78, top:94, size:18},
+            // 上部
+            {c:"く", left:28, top:2,  size:16},
+            {c:"つ", left:45, top:2,  size:20},
+            {c:"ふ", left:62, top:2,  size:14},
+            // 下部
+            {c:"ね", left:28, top:96, size:18},
+            {c:"み", left:45, top:96, size:14},
+            {c:"り", left:62, top:96, size:20},
+            // 四隅寄り追加
+            {c:"こ", left:8,  top:14, size:14},
+            {c:"て", left:88, top:20, size:16},
+            {c:"ひ", left:8,  top:78, size:16},
+            {c:"わ", left:88, top:84, size:14},
+          ].map(({c, left, top, size}, i) => (
             <div key={i} style={{
               position: "absolute",
               left: `${left}%`,
               top: `${top}%`,
-              fontSize: `${14 + (i % 3) * 6}px`,
+              fontSize: `${size}px`,
               color: "#9d7fe0",
               opacity: 0.22,
               fontWeight: "bold",
